@@ -1,0 +1,4 @@
+tensorflow==1.15.0 # Texar is not (yet) compatible with Tensorflow 2.x, so we use the latest 1.x release
+tensorflow-probability==0.7.0 # Texar is not (yet) compatible with any later version
+texar==0.2.4
+numpy==1.16.5
