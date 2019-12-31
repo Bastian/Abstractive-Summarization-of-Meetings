@@ -23,6 +23,7 @@ import texar.tf as tx
 from texar.tf.modules import TransformerDecoder, BERTEncoder
 from texar.tf.utils import transformer_utils
 from bleu_tool import bleu_wrapper
+from rouge import FilesRouge
 
 import config_model
 import config_data
@@ -38,6 +39,21 @@ flags.DEFINE_string("run_mode", "train_and_evaluate", "Either train_and_evaluate
 FLAGS = flags.FLAGS
 
 model_dir = './outputs'
+
+
+def print_rouge_scores(scores):
+    """Prints the rouge scores in a nice, human-readable format."""
+    rouge_1 = scores['rouge-1']
+    rouge_2 = scores['rouge-2']
+    rouge_l = scores['rouge-l']
+
+    print("┌─────────┬────────┬────────┬────────┐")
+    print("│ Metric  │ Pre    │ Rec    │ F      │")
+    print("├─────────┼────────┼────────┼────────┤")
+    print("│ ROUGE-1 │ %.4f │ %.4f │ %.4f │" % (rouge_1['p'], rouge_1['r'], rouge_1['f']))
+    print("│ ROUGE-2 │ %.4f │ %.4f │ %.4f │" % (rouge_2['p'], rouge_2['r'], rouge_2['f']))
+    print("│ ROUGE-L │ %.4f │ %.4f │ %.4f │" % (rouge_l['p'], rouge_l['r'], rouge_l['f']))
+    print("└─────────┴────────┴────────┴────────┘")
 
 
 def get_data_iterator():
@@ -221,7 +237,10 @@ def main():
             hyp_fn, ref_fn = tx.utils.write_paired_text(
                 hypotheses, references, fname, mode='s')
 
-            print(hyp_fn)
+            files_rouge = FilesRouge(hyp_fn, ref_fn)
+            scores = files_rouge.get_scores(avg=True)
+
+            print_rouge_scores(scores)
 
             eval_bleu = bleu_wrapper(ref_fn, hyp_fn, case_sensitive=True)
             print('epoch: %d, eval_bleu %.4f' % (epoch, eval_bleu))
