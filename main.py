@@ -224,7 +224,6 @@ def main():
             print(hyp_fn)
 
             eval_bleu = bleu_wrapper(ref_fn, hyp_fn, case_sensitive=True)
-            eval_bleu = 100. * eval_bleu
             print('epoch: %d, eval_bleu %.4f' % (epoch, eval_bleu))
 
             if eval_bleu > best_results['score']:
