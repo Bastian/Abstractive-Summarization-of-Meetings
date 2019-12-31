@@ -149,6 +149,7 @@ def main():
     beam_search_ids = predictions['sample_id'][:, :, 0]
 
     def _train_epoch(sess, epoch, step, smry_writer):
+        print('Start epoch %d' % epoch)
         data_iterator.restart_dataset(sess, 'train')
 
         fetches = {
@@ -186,6 +187,7 @@ def main():
         return step
 
     def _eval_epoch(sess, epoch, mode):
+        print('Starting eval')
         data_iterator.restart_dataset(sess, 'eval')
         references, hypotheses = [], []
 
