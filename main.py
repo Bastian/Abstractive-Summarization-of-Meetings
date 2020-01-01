@@ -215,12 +215,12 @@ def main():
                 }
                 fetches = {
                     'beam_search_ids': beam_search_ids,
-                    'tgt_input_ids': tgt_input_ids
+                    'tgt_labels': tgt_labels
                 }
                 fetches_ = sess.run(fetches, feed_dict=feed_dict)
 
                 hypotheses.extend(h.tolist() for h in fetches_['beam_search_ids'])
-                references.extend(r.tolist() for r in fetches_['tgt_input_ids'])
+                references.extend(r.tolist() for r in fetches_['tgt_labels'])
                 hypotheses = utils.list_strip_eos(hypotheses, eos_token_id)
                 references = utils.list_strip_eos(references, eos_token_id)
             except tf.errors.OutOfRangeError:
