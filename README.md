@@ -17,7 +17,7 @@ For dependency versions, take a look at the `requirements.txt` file.
 python prepare_data.py
 ```
 
-reads the `ami.tsv` file and generates 3 TFRecord data files `train.tf_record`, `eval.tf_record`, and `test.tf_record`.
+reads the `data.[train|dev|test].tsv` files and generates 3 TFRecord data files `train.tf_record`, `eval.tf_record`, and `test.tf_record`.
 These files are used for training.
 
 ### Training
@@ -32,8 +32,8 @@ starts the training.
 
 ### Data
 
-The data from `ami.tsv` is taken from the [AMI Corpus](http://groups.inf.ed.ac.uk/ami/corpus/) and processed
-using the [NITE XML Toolkit](http://groups.inf.ed.ac.uk/nxt/index.shtml). The code that parses the corpus is
+The data from the `data.[train|dev|test].tsv` files is taken from the [AMI Corpus](http://groups.inf.ed.ac.uk/ami/corpus/) 
+and processed using the [NITE XML Toolkit](http://groups.inf.ed.ac.uk/nxt/index.shtml). The code that parses the corpus is
 not yet published, but will be soon.
 
 #### License

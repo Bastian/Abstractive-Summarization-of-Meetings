@@ -78,7 +78,7 @@ def main():
     tfrecord_output_dir = data_dir
     tx.utils.maybe_create_dir(tfrecord_output_dir)
 
-    processor = data_utils.AMIProcessor()
+    processor = data_utils.TsvProcessor()
 
     num_train_data = len(processor.get_train_examples(data_dir))
     print('num_train_data:%d' % num_train_data)

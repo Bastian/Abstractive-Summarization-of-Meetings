@@ -17,7 +17,6 @@
 # https://github.com/asyml/texar/blob/413e07f859acbbee979f274b52942edd57b335c1/examples/bert/utils/data_utils.py
 import os
 import csv
-import random
 import collections
 
 import tensorflow as tf
@@ -82,27 +81,16 @@ class DataProcessor(object):
         return lines
 
 
-class AMIProcessor(DataProcessor):
-    """Processor for the AMI meeting corpus."""
-
-    # TODO This is a very bad way to split train, eval and test datasets as they may leak information!
-    #  Better split by meeting.
-    __PERCENTAGE_TRAIN = .75
-    __PERCENTAGE_DEV = .15
-
+class TsvProcessor(DataProcessor):
+    """Processor for tsv files."""
 
     @staticmethod
-    def __get_inputs(lines, start, end, include_label=True):
-        # Shuffle the lines, but always use the same seed to ensure that train, dev and test have no common elements
-        random.Random(42).shuffle(lines)
-
+    def __get_inputs(lines, data_type, include_label=True):
         examples = []
         for (i, line) in enumerate(lines):
-            if start > i or i > end:
-                continue
             if len(line) != 2:
                 continue
-            guid = "ami-%d" % i
+            guid = "data-%s-%d" % (data_type, i)
             src_text = tx.utils.compat_as_text(line[0])
             tgt_text = tx.utils.compat_as_text(line[1])
             example = InputExample(guid=guid, src_text=src_text, tgt_text=tgt_text if include_label else None)
@@ -111,24 +99,18 @@ class AMIProcessor(DataProcessor):
 
     def get_train_examples(self, data_dir):
         """See base class."""
-        lines = self._read_tsv(os.path.join(data_dir, "ami.tsv"))
-        start = 0
-        end = len(lines) * self.__PERCENTAGE_TRAIN
-        return self.__get_inputs(lines=lines, start=start, end=end)
+        lines = self._read_tsv(os.path.join(data_dir, "data.train.tsv"))
+        return self.__get_inputs(lines=lines, data_type='train')
 
     def get_dev_examples(self, data_dir):
         """See base class."""
-        lines = self._read_tsv(os.path.join(data_dir, "ami.tsv"))
-        start = len(lines) * self.__PERCENTAGE_TRAIN + 1
-        end = start + len(lines) * self.__PERCENTAGE_DEV
-        return self.__get_inputs(lines=lines, start=start, end=end)
+        lines = self._read_tsv(os.path.join(data_dir, "data.dev.tsv"))
+        return self.__get_inputs(lines=lines, data_type='dev')
 
     def get_test_examples(self, data_dir):
         """See base class."""
-        lines = self._read_tsv(os.path.join(data_dir, "ami.tsv"))
-        start = len(lines) * (self.__PERCENTAGE_TRAIN + self.__PERCENTAGE_DEV) + 2
-        end = len(lines)
-        return self.__get_inputs(lines=lines, start=start, end=end, include_label=False)
+        lines = self._read_tsv(os.path.join(data_dir, "data.test.tsv"))
+        return self.__get_inputs(lines=lines, data_type='test', include_label=False)
 
 
 def convert_single_example(ex_index, example, max_seq_length, tokenizer):

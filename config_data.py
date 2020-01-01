@@ -1,6 +1,6 @@
 # Taken from https://github.com/asyml/texar/blob/master/examples/bert/config_data.py and modified
 max_seq_length = 64
-num_train_data = 1817
+num_train_data = 1731
 
 tfrecord_data_dir = "data"
 
