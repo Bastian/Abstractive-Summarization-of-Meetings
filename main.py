@@ -30,6 +30,7 @@ import config_data
 
 from utils import utils
 from utils.data_utils import bos_token_id, eos_token_id
+from utils.file_writer_utils import write_token_id_arrays_to_text_file
 
 
 flags = tf.flags
@@ -67,6 +68,8 @@ def get_data_iterator():
 
 
 def main():
+    tokenizer = tx.data.BERTTokenizer(pretrained_model_name=config_model.bert['pretrained_model_name'])
+
     data_iterator = get_data_iterator()
     batch = data_iterator.get_next()
 
@@ -205,7 +208,7 @@ def main():
     def _eval_epoch(sess, epoch, mode):
         print('Starting eval')
         data_iterator.restart_dataset(sess, 'eval')
-        references, hypotheses = [], []
+        references, hypotheses, inputs = [], [], []
 
         while True:
             try:
@@ -215,12 +218,15 @@ def main():
                 }
                 fetches = {
                     'beam_search_ids': beam_search_ids,
-                    'tgt_labels': tgt_labels
+                    'tgt_labels': tgt_labels,
+                    # src_input_ids is not necessary for calculating the metric, but allows us to write it to a file.
+                    'src_input_ids': src_input_ids
                 }
                 fetches_ = sess.run(fetches, feed_dict=feed_dict)
 
                 hypotheses.extend(h.tolist() for h in fetches_['beam_search_ids'])
                 references.extend(r.tolist() for r in fetches_['tgt_labels'])
+                inputs.extend(h.tolist() for h in fetches_['src_input_ids'])
                 hypotheses = utils.list_strip_eos(hypotheses, eos_token_id)
                 references = utils.list_strip_eos(references, eos_token_id)
             except tf.errors.OutOfRangeError:
@@ -232,10 +238,10 @@ def main():
             # text tokens) and serves only as a surrogate metric to monitor
             # the training process
             fname = os.path.join(model_dir, 'tmp.eval')
-            hypotheses = tx.utils.str_join(hypotheses)
-            references = tx.utils.str_join(references)
+            hypotheses_str = tx.utils.str_join(hypotheses)
+            references_str = tx.utils.str_join(references)
             hyp_fn, ref_fn = tx.utils.write_paired_text(
-                hypotheses, references, fname, mode='s')
+                hypotheses_str, references_str, fname, mode='s')
 
             files_rouge = FilesRouge(hyp_fn, ref_fn)
             scores = files_rouge.get_scores(avg=True)
@@ -251,8 +257,11 @@ def main():
                 model_path = os.path.join(model_dir, 'best-model.ckpt')
                 print('saving model to %s' % model_path)
 
-                # Also save the best results in a text file
-                tx.utils.write_paired_text(hypotheses, references, os.path.join(model_dir, 'best.eval'), mode='s')
+                # Also save the best results in a text file for manual evaluation
+                write_token_id_arrays_to_text_file(inputs, os.path.join(model_dir, 'eval-inputs.txt'), tokenizer)
+                write_token_id_arrays_to_text_file(hypotheses, os.path.join(model_dir, 'eval-predictions.txt'),
+                                                   tokenizer)
+                write_token_id_arrays_to_text_file(references, os.path.join(model_dir, 'eval-targets.txt'), tokenizer)
 
                 saver.save(sess, model_path)
 
