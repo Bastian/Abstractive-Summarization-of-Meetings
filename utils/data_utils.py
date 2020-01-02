@@ -121,14 +121,18 @@ def convert_single_example(ex_index, example, max_seq_length, tokenizer):
     tgt_input_ids, _, _ = tokenizer.encode_text(text_a=example.tgt_text,
                                                 max_seq_length=max_seq_length)
 
+    # noinspection PyProtectedMember
+    sep_token_id = tokenizer._map_token_to_id('[SEP]')
+
     tgt_input_ids[0] = bos_token_id  # Replace [CLS] token with bos token
-    if 0 in tgt_input_ids:
-        tgt_input_ids[tgt_input_ids.index(0)] = eos_token_id  # Replace first padding token with eos token
+    if sep_token_id in tgt_input_ids:
+        tgt_input_ids[tgt_input_ids.index(sep_token_id)] = eos_token_id  # Replace [SEP] token with eos token
     else:
         tgt_input_ids[len(tgt_input_ids) - 1] = eos_token_id  # Replace last token with eos token
 
     tgt_input_mask = [1] * len(tgt_input_ids)
 
+    # The target labels are the same as the decoder inputs, but shifted by one
     tgt_labels = tgt_input_ids[1:]
     tgt_labels.append(0)
 
