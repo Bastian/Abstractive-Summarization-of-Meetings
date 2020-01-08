@@ -33,8 +33,8 @@ starts the training.
 ### Data
 
 The data from the `data.[train|dev|test].tsv` files is taken from the [AMI Corpus](http://groups.inf.ed.ac.uk/ami/corpus/) 
-and processed using the [NITE XML Toolkit](http://groups.inf.ed.ac.uk/nxt/index.shtml). The code that parses the corpus is
-not yet published, but will be soon.
+and processed using the [NITE XML Toolkit](http://groups.inf.ed.ac.uk/nxt/index.shtml). The code that parses the corpus
+can be found at [Meeting-Parser](https://github.com/Bastian/Meeting-Parser).
 
 #### License
 
