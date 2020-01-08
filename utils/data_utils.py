@@ -45,13 +45,11 @@ class InputExample:
 class InputFeatures:
     """A single set of features of data."""
 
-    def __init__(self, src_input_ids, src_input_mask, src_segment_ids, tgt_input_ids, tgt_input_mask, tgt_labels):
+    def __init__(self, src_input_ids, src_segment_ids, tgt_input_ids, tgt_labels):
         self.src_input_ids = src_input_ids
-        self.src_input_mask = src_input_mask
         self.src_segment_ids = src_segment_ids
 
         self.tgt_input_ids = tgt_input_ids
-        self.tgt_input_mask = tgt_input_mask
         self.tgt_labels = tgt_labels
 
 
@@ -116,10 +114,8 @@ class TsvProcessor(DataProcessor):
 def convert_single_example(ex_index, example, max_seq_length, tokenizer):
     """Converts a single `InputExample` into a single `InputFeatures`."""
 
-    src_input_ids, src_segment_ids, src_input_mask = tokenizer.encode_text(text_a=example.src_text,
-                                                                           max_seq_length=max_seq_length)
-    tgt_input_ids, _, _ = tokenizer.encode_text(text_a=example.tgt_text,
-                                                max_seq_length=max_seq_length)
+    src_input_ids, src_segment_ids, _ = tokenizer.encode_text(text_a=example.src_text, max_seq_length=max_seq_length)
+    tgt_input_ids, _, _ = tokenizer.encode_text(text_a=example.tgt_text, max_seq_length=max_seq_length)
 
     # noinspection PyProtectedMember
     sep_token_id = tokenizer._map_token_to_id('[SEP]')
@@ -130,17 +126,13 @@ def convert_single_example(ex_index, example, max_seq_length, tokenizer):
     else:
         tgt_input_ids[len(tgt_input_ids) - 1] = eos_token_id  # Replace last token with eos token
 
-    tgt_input_mask = [1] * len(tgt_input_ids)
-
     # The target labels are the same as the decoder inputs, but shifted by one
     tgt_labels = tgt_input_ids[1:]
     tgt_labels.append(0)
 
     feature = InputFeatures(src_input_ids=src_input_ids,
                             src_segment_ids=src_segment_ids,
-                            src_input_mask=src_input_mask,
                             tgt_input_ids=tgt_input_ids,
-                            tgt_input_mask=tgt_input_mask,
                             tgt_labels=tgt_labels)
     return feature
 
@@ -160,9 +152,7 @@ def convert_examples_to_features_and_output_to_files(examples, max_seq_length, t
         features = collections.OrderedDict()
         features["src_input_ids"] = create_int_feature(feature.src_input_ids)
         features["src_segment_ids"] = create_int_feature(feature.src_segment_ids)
-        features["src_input_mask"] = create_int_feature(feature.src_input_mask)
         features["tgt_input_ids"] = create_int_feature(feature.tgt_input_ids)
-        features["tgt_input_mask"] = create_int_feature(feature.tgt_input_mask)
         features["tgt_labels"] = create_int_feature(feature.tgt_labels)
 
         tf_example = tf.train.Example(features=tf.train.Features(feature=features))

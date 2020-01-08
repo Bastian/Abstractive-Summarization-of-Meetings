@@ -24,9 +24,7 @@ feature_original_types = {
     # and the sequence length is limited by `max_seq_length`.
     "src_input_ids": ["tf.int64", "FixedLenFeature", max_seq_length],
     "src_segment_ids": ["tf.int64", "FixedLenFeature", max_seq_length],
-    "src_input_mask": ["tf.int64", "FixedLenFeature", max_seq_length],
     "tgt_input_ids": ["tf.int64", "FixedLenFeature", max_seq_length],
-    "tgt_input_mask": ["tf.int64", "FixedLenFeature", max_seq_length],
     "tgt_labels": ["tf.int64", "FixedLenFeature", max_seq_length]
 }
 
@@ -36,9 +34,7 @@ feature_convert_types = {
     # to `tf.int32`
     "src_input_ids": "tf.int32",
     "src_segment_ids": "tf.int32",
-    "src_input_mask": "tf.int32",
     "tgt_input_ids": "tf.int32",
-    "tgt_input_mask": "tf.int32",
     "tgt_labels": "tf.int32"
 }
 

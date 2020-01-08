@@ -75,9 +75,7 @@ def main():
 
     src_input_ids = batch['src_input_ids']
     src_segment_ids = batch['src_segment_ids']
-    src_input_mask = batch['src_input_mask']
     tgt_input_ids = batch['tgt_input_ids']
-    tgt_input_mask = batch['tgt_input_mask']
     tgt_labels = batch['tgt_labels']
 
     is_target = tf.cast(tf.not_equal(tgt_labels, 0), tf.float32)
