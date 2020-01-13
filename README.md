@@ -28,6 +28,16 @@ python main.py --run_mode=train_and_evaluate
 
 starts the training.
 
+### Testing
+
+```
+python main.py --run_mode=test
+```
+
+can be used to calculate BLEU and ROUGE scores on the test data.
+It will print the results into the console and write the three files `test-inputs.txt`, `test-predictions.txt`, `test-targets.txt`
+in the `/outputs` folder. These files contain the sentences in a human readable format.
+
 ## Credits
 
 ### Data

@@ -204,14 +204,21 @@ def main():
         return step
 
     def _eval_epoch(sess, epoch, mode):
-        print('Starting eval')
-        data_iterator.restart_dataset(sess, 'eval')
+        print('Starting eval / test')
+
+        if mode is not 'eval' and not 'test':
+            print("Unknown mode!")
+            raise
+
+        dataset_name = 'eval' if mode is 'eval' else 'test'
+
+        data_iterator.restart_dataset(sess, dataset_name)
         references, hypotheses, inputs = [], [], []
 
         while True:
             try:
                 feed_dict = {
-                    data_iterator.handle: data_iterator.get_handle(sess, 'eval'),
+                    data_iterator.handle: data_iterator.get_handle(sess, dataset_name),
                     tx.global_mode(): tf.estimator.ModeKeys.EVAL,
                 }
                 fetches = {
@@ -230,27 +237,36 @@ def main():
             except tf.errors.OutOfRangeError:
                 break
 
-        if mode == 'eval':
+        def calculate_scores():
+            # TODO Maybe we also want to use text tokens for eval, too.
+            #  I'm not sure, why Texar does not use text tokens in there transformer example for eval, too, but I guess
+            #  it mainly has performance reasons. I don't think that this matters very much in our case.
+
             # Writes results to files to evaluate BLEU
             # For 'eval' mode, the BLEU is based on token ids (rather than
             # text tokens) and serves only as a surrogate metric to monitor
             # the training process
-            fname = os.path.join(model_dir, 'tmp.eval')
+            fname = os.path.join(model_dir, 'tmp.eval' if mode is 'eval' else 'tmp.test')
             hypotheses_str = tx.utils.str_join(hypotheses)
             references_str = tx.utils.str_join(references)
             hyp_fn, ref_fn = tx.utils.write_paired_text(
                 hypotheses_str, references_str, fname, mode='s')
 
             files_rouge = FilesRouge(hyp_fn, ref_fn)
-            scores = files_rouge.get_scores(avg=True)
+            rouge_scores = files_rouge.get_scores(avg=True)
 
-            print_rouge_scores(scores)
+            bleu_score = bleu_wrapper(ref_fn, hyp_fn, case_sensitive=True)
 
-            eval_bleu = bleu_wrapper(ref_fn, hyp_fn, case_sensitive=True)
-            print('epoch: %d, eval_bleu %.4f' % (epoch, eval_bleu))
+            return rouge_scores, bleu_score
 
-            if eval_bleu > best_results['score']:
-                best_results['score'] = eval_bleu
+        if mode == 'eval':
+            rouge_scores, bleu_score = calculate_scores()
+
+            print_rouge_scores(rouge_scores)
+            print('epoch: %d, bleu_score %.4f' % (epoch, bleu_score))
+
+            if bleu_score > best_results['score']:
+                best_results['score'] = bleu_score
                 best_results['epoch'] = epoch
                 model_path = os.path.join(model_dir, 'best-model.ckpt')
                 print('saving model to %s' % model_path)
@@ -264,8 +280,16 @@ def main():
                 saver.save(sess, model_path)
 
         elif mode == 'test':
-            print('Test not yet implemented!')
-            # TODO
+            # TODO Calculate score on text tokens instead of token ids
+            rouge_scores, bleu_score = calculate_scores()
+
+            print_rouge_scores(rouge_scores)
+            print('bleu_score %.4f' % bleu_score)
+
+            # Also save the results in a text file for manual evaluation
+            write_token_id_arrays_to_text_file(inputs, os.path.join(model_dir, 'test-inputs.txt'), tokenizer)
+            write_token_id_arrays_to_text_file(hypotheses, os.path.join(model_dir, 'test-predictions.txt'), tokenizer)
+            write_token_id_arrays_to_text_file(references, os.path.join(model_dir, 'test-targets.txt'), tokenizer)
 
     # Run the graph
     with tf.Session() as sess:

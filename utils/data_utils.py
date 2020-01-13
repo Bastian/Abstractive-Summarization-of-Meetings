@@ -83,7 +83,7 @@ class TsvProcessor(DataProcessor):
     """Processor for tsv files."""
 
     @staticmethod
-    def __get_inputs(lines, data_type, include_label=True):
+    def __get_inputs(lines, data_type):
         examples = []
         for (i, line) in enumerate(lines):
             if len(line) != 2:
@@ -91,7 +91,7 @@ class TsvProcessor(DataProcessor):
             guid = "data-%s-%d" % (data_type, i)
             src_text = tx.utils.compat_as_text(line[0])
             tgt_text = tx.utils.compat_as_text(line[1])
-            example = InputExample(guid=guid, src_text=src_text, tgt_text=tgt_text if include_label else None)
+            example = InputExample(guid=guid, src_text=src_text, tgt_text=tgt_text)
             examples.append(example)
         return examples
 
@@ -108,7 +108,7 @@ class TsvProcessor(DataProcessor):
     def get_test_examples(self, data_dir):
         """See base class."""
         lines = self._read_tsv(os.path.join(data_dir, "data.test.tsv"))
-        return self.__get_inputs(lines=lines, data_type='test', include_label=False)
+        return self.__get_inputs(lines=lines, data_type='test')
 
 
 def convert_single_example(ex_index, example, max_seq_length, tokenizer):
