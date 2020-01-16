@@ -8,9 +8,6 @@ train_batch_size = 12
 max_train_epoch = 30
 display_steps = 50  # Print training loss every display_steps; -1 to disable
 eval_steps = 250    # Eval on the dev set every eval_steps; -1 to disable
-# Proportion of training to perform linear learning
-# rate warmup for. E.g., 0.1 = 10% of training.
-warmup_proportion = 0.1
 
 eval_batch_size = 12
 test_batch_size = 12
