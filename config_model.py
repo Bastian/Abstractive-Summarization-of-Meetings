@@ -49,7 +49,3 @@ lr = {
     'static_lr': 1e-3,
     'warmup_steps': 5000,
 }
-
-position_embedder_hparams = {
-    'dim': hidden_dim
-}
