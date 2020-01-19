@@ -41,9 +41,16 @@ def batch_size_fn(new, count, size_so_far):
     return max(src_elements, tgt_elements)
 
 
-def get_lr(fstep, opt_config):
+def get_lr(fstep, config_model):
+    opt_config = config_model.lr
     if opt_config['learning_rate_schedule'] == 'static':
         lr = opt_config['static_lr']
+    elif opt_config['learning_rate_schedule'] == 'aiayn':
+        # The learning rate used in the "Attention is all you need" paper
+        # See https://papers.nips.cc/paper/7181-attention-is-all-you-need.pdf chapter 5.3
+        lr = (config_model.hidden_dim ** -0.5) \
+             * min((fstep + 1) ** -0.5, (fstep + 1) * opt_config['warmup_steps'] ** -1.5)
+        lr *= opt_config['aiayn_multiplier']  # A multiplier for the learning rate (not in the original paper)
     else:
         lr = opt_config['lr_constant'] \
             * min(1.0, (fstep / opt_config['warmup_steps'])) \

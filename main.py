@@ -181,7 +181,7 @@ def main():
                 feed_dict = {
                     data_iterator.handle: data_iterator.get_handle(sess, 'train'),
                     tx.global_mode(): tf.estimator.ModeKeys.TRAIN,
-                    learning_rate: utils.get_lr(step, config_model.lr)
+                    learning_rate: utils.get_lr(step, config_model)
                 }
 
                 fetches_ = sess.run(fetches, feed_dict)

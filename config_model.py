@@ -44,8 +44,17 @@ opt = {
 }
 
 lr = {
+    # The 'learning_rate_schedule' can have the following 3 values:
+    # - 'static' -> A simple static learning rate, specified by 'static_lr'
+    # - 'aiayn' -> The learning rate used in the "Attention is all you need" paper.
+    # - 'constant.linear_warmup.rsqrt_decay.rsqrt_depth' -> The learning rate for Texar's Transformer example
     'learning_rate_schedule': 'constant.linear_warmup.rsqrt_decay.rsqrt_depth',
+    # The learning rate constant used for the 'constant.linear_warmup.rsqrt_decay.rsqrt_depth' learning rate
     'lr_constant': 2 * (hidden_dim ** -0.5),
+    # The warmup steps for the 'aiayn' and 'constant.linear_warmup.rsqrt_decay.rsqrt_depth' learning rate
+    'warmup_steps': 4000,
+    # The static learning rate, when 'static' is used.
     'static_lr': 1e-3,
-    'warmup_steps': 5000,
+    # A multiplier that can be applied to the 'aiayn' learning rate.
+    'aiayn_multiplier': 0.2
 }
