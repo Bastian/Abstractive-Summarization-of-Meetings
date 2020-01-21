@@ -25,6 +25,7 @@ import texar.tf as tx
 
 pad_token_id, bos_token_id, eos_token_id, unk_token_id = 0, 1, 2, 3
 
+
 class InputExample:
     """A single training/test example for text summarization."""
 
@@ -35,7 +36,7 @@ class InputExample:
             src_text: string. The untokenized source text of the first sequence.
                 For single sequence tasks, only this sequence must be specified.
             tgt_text: (Optional) string. The target of the example text. This should be
-                specified for train and dev examples, but not for test examples.
+                specified for train, dev and test examples, but not for predict examples.
         """
         self.guid = guid
         self.src_text = src_text
@@ -45,7 +46,7 @@ class InputExample:
 class InputFeatures:
     """A single set of features of data."""
 
-    def __init__(self, src_input_ids, src_segment_ids, tgt_input_ids, tgt_labels):
+    def __init__(self, src_input_ids, src_segment_ids, tgt_input_ids=None, tgt_labels=None):
         self.src_input_ids = src_input_ids
         self.src_segment_ids = src_segment_ids
 
@@ -111,29 +112,53 @@ class TsvProcessor(DataProcessor):
         return self.__get_inputs(lines=lines, data_type='test')
 
 
+class PredictProcessor:
+
+    def __read_txt(cls, input_file):
+        """Reads a text file."""
+        with tf.gfile.Open(input_file, "r") as f:
+            return f.readlines()
+
+    def get_examples(self, data_dir):
+        lines = self.__read_txt(os.path.join(data_dir, "predict.txt"))
+        examples = []
+        for (i, line) in enumerate(lines):
+            guid = "data-predict-%d" % i
+            src_text = tx.utils.compat_as_text(line)
+            examples.append(InputExample(guid=guid, src_text=src_text))
+
+        return examples
+
+
 def convert_single_example(ex_index, example, max_seq_length, tokenizer):
     """Converts a single `InputExample` into a single `InputFeatures`."""
-
-    src_input_ids, src_segment_ids, _ = tokenizer.encode_text(text_a=example.src_text, max_seq_length=max_seq_length)
-    tgt_input_ids, _, _ = tokenizer.encode_text(text_a=example.tgt_text, max_seq_length=max_seq_length)
 
     # noinspection PyProtectedMember
     sep_token_id = tokenizer._map_token_to_id('[SEP]')
 
-    tgt_input_ids[0] = bos_token_id  # Replace [CLS] token with bos token
-    if sep_token_id in tgt_input_ids:
-        tgt_input_ids[tgt_input_ids.index(sep_token_id)] = eos_token_id  # Replace [SEP] token with eos token
+    src_input_ids, src_segment_ids, _ = tokenizer.encode_text(text_a=example.src_text, max_seq_length=max_seq_length)
+
+    if example.tgt_text is not None:
+        tgt_input_ids, _, _ = tokenizer.encode_text(text_a=example.tgt_text, max_seq_length=max_seq_length)
+
+        tgt_input_ids[0] = bos_token_id  # Replace [CLS] token with bos token
+        if sep_token_id in tgt_input_ids:
+            tgt_input_ids[tgt_input_ids.index(sep_token_id)] = eos_token_id  # Replace [SEP] token with eos token
+        else:
+            tgt_input_ids[len(tgt_input_ids) - 1] = eos_token_id  # Replace last token with eos token
+
+        # The target labels are the same as the decoder inputs, but shifted by one
+        tgt_labels = tgt_input_ids[1:]
+        tgt_labels.append(0)
+
+        feature = InputFeatures(src_input_ids=src_input_ids,
+                                src_segment_ids=src_segment_ids,
+                                tgt_input_ids=tgt_input_ids,
+                                tgt_labels=tgt_labels)
     else:
-        tgt_input_ids[len(tgt_input_ids) - 1] = eos_token_id  # Replace last token with eos token
+        feature = InputFeatures(src_input_ids=src_input_ids,
+                                src_segment_ids=src_segment_ids)
 
-    # The target labels are the same as the decoder inputs, but shifted by one
-    tgt_labels = tgt_input_ids[1:]
-    tgt_labels.append(0)
-
-    feature = InputFeatures(src_input_ids=src_input_ids,
-                            src_segment_ids=src_segment_ids,
-                            tgt_input_ids=tgt_input_ids,
-                            tgt_labels=tgt_labels)
     return feature
 
 
@@ -152,8 +177,10 @@ def convert_examples_to_features_and_output_to_files(examples, max_seq_length, t
         features = collections.OrderedDict()
         features["src_input_ids"] = create_int_feature(feature.src_input_ids)
         features["src_segment_ids"] = create_int_feature(feature.src_segment_ids)
-        features["tgt_input_ids"] = create_int_feature(feature.tgt_input_ids)
-        features["tgt_labels"] = create_int_feature(feature.tgt_labels)
+
+        if feature.tgt_input_ids is not None:
+            features["tgt_input_ids"] = create_int_feature(feature.tgt_input_ids)
+            features["tgt_labels"] = create_int_feature(feature.tgt_labels)
 
         tf_example = tf.train.Example(features=tf.train.Features(feature=features))
         writer.write(tf_example.SerializeToString())
@@ -178,5 +205,5 @@ def prepare_TFRecord_data(processor, tokenizer, data_dir, max_seq_length, output
     convert_examples_to_features_and_output_to_files(eval_examples, max_seq_length, tokenizer, eval_file)
 
     test_examples = processor.get_test_examples(data_dir)
-    test_file = os.path.join(output_dir, "predict.tf_record")
+    test_file = os.path.join(output_dir, "test.tf_record")
     convert_examples_to_features_and_output_to_files(test_examples, max_seq_length, tokenizer, test_file)

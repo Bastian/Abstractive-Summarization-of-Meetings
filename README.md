@@ -38,11 +38,20 @@ can be used to calculate BLEU and ROUGE scores on the test data.
 It will print the results into the console and write the three files `test-inputs.txt`, `test-predictions.txt`, `test-targets.txt`
 in the `/outputs` folder. These files contain the sentences in a human readable format.
 
+### Predicting
+
+```
+python main.py --run_mode=predict
+```
+
+takes the content from the `/data/predict.txt` file and creates two files in the output-folder: `predict-inputs.txt` and
+`predict-predictions.txt`.
+
 ## Credits
 
 ### Data
 
-The data from the `data.[train|dev|test].tsv` files is taken from the [AMI Corpus](http://groups.inf.ed.ac.uk/ami/corpus/) 
+The data from the `predict.txt` and `data.[train|dev|test].tsv` files is taken from the [AMI Corpus](http://groups.inf.ed.ac.uk/ami/corpus/) 
 and processed using the [NITE XML Toolkit](http://groups.inf.ed.ac.uk/nxt/index.shtml). The code that parses the corpus
 can be found at [Meeting-Parser](https://github.com/Bastian/Meeting-Parser).
 

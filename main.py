@@ -29,13 +29,13 @@ import config_model
 import config_data
 
 from utils import utils
-from utils.data_utils import bos_token_id, eos_token_id
+from utils.data_utils import bos_token_id, eos_token_id, InputExample, convert_single_example, PredictProcessor
 from utils.file_writer_utils import write_token_id_arrays_to_text_file
 
 
 flags = tf.flags
 
-flags.DEFINE_string("run_mode", "train_and_evaluate", "Either train_and_evaluate or test.")
+flags.DEFINE_string("run_mode", "train_and_evaluate", "Either train_and_evaluate, test or predict.")
 
 FLAGS = flags.FLAGS
 
@@ -204,7 +204,7 @@ def main():
         return step
 
     def _eval_epoch(sess, epoch, mode):
-        print('Starting eval / test')
+        print('Starting %s' % mode)
 
         if mode is not 'eval' and not 'test':
             print("Unknown mode!")
@@ -291,6 +291,36 @@ def main():
             write_token_id_arrays_to_text_file(hypotheses, os.path.join(model_dir, 'test-predictions.txt'), tokenizer)
             write_token_id_arrays_to_text_file(references, os.path.join(model_dir, 'test-targets.txt'), tokenizer)
 
+    def _predict(sess, examples: [InputExample]):
+        hypotheses, inputs = [], []
+
+        features = []
+        for example in examples:
+            feature = convert_single_example(ex_index=0, example=example, max_seq_length=config_data.max_seq_length,
+                                             tokenizer=tokenizer)
+            features.append(feature)
+
+        for feature in features:
+            feed_dict = {
+                src_input_ids: [feature.src_input_ids],
+                src_segment_ids: [feature.src_segment_ids],
+                tx.global_mode(): tf.estimator.ModeKeys.PREDICT,
+            }
+
+            fetches = {
+                'beam_search_ids': beam_search_ids,
+                'src_input_ids': src_input_ids
+            }
+
+            fetches_ = sess.run(fetches, feed_dict=feed_dict)
+
+            hypotheses.extend(h.tolist() for h in fetches_['beam_search_ids'])
+            inputs.extend(h.tolist() for h in fetches_['src_input_ids'])
+            hypotheses = utils.list_strip_eos(hypotheses, eos_token_id)
+
+        write_token_id_arrays_to_text_file(inputs, os.path.join(model_dir, 'predict-inputs.txt'), tokenizer)
+        write_token_id_arrays_to_text_file(hypotheses, os.path.join(model_dir, 'predict-predictions.txt'), tokenizer)
+
     # Run the graph
     with tf.Session() as sess:
         sess.run(tf.global_variables_initializer())
@@ -317,6 +347,17 @@ def main():
             saver.restore(sess, tf.train.latest_checkpoint(model_dir))
 
             _eval_epoch(sess, 0, mode='test')
+
+        elif FLAGS.run_mode == 'predict':
+            print('Begin running with predict mode')
+
+            print('Restore latest checkpoint in %s' % model_dir)
+            saver.restore(sess, tf.train.latest_checkpoint(model_dir))
+
+            processor = PredictProcessor()
+
+            _predict(sess=sess,
+                     examples=processor.get_examples(data_dir='./data'))
 
         else:
             raise ValueError('Unknown mode: {}'.format(FLAGS.run_mode))

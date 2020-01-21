@@ -67,7 +67,7 @@ test_hparam = {
         "data_name": "data",
         "feature_convert_types": feature_convert_types,
         "feature_original_types": feature_original_types,
-        "files": "{}/predict.tf_record".format(tfrecord_data_dir)
+        "files": "{}/test.tf_record".format(tfrecord_data_dir)
     },
     "shuffle": False
 }
