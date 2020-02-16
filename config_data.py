@@ -1,18 +1,18 @@
 # Taken from https://github.com/asyml/texar/blob/master/examples/bert/config_data.py and modified
-max_seq_length = 64
+max_seq_length = 96
 num_train_data = 1731
 
 tfrecord_data_dir = "data"
 
-train_batch_size = 12
-max_train_epoch = 30
-display_steps = 50  # Print training loss every display_steps; -1 to disable
-eval_steps = 250    # Eval on the dev set every eval_steps; -1 to disable
+train_batch_size = 28
+max_train_epoch = 250
+display_steps = 10  # Print training loss every display_steps; -1 to disable
+eval_steps = 75  # Eval on the dev set every eval_steps; -1 to disable
 
-eval_batch_size = 12
-test_batch_size = 12
+eval_batch_size = 28
+test_batch_size = 28
 
-max_decoding_length = 64
+max_decoding_length = 96
 
 feature_original_types = {
     # Reading features from TFRecord data file.

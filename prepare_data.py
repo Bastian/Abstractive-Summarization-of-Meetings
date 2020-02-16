@@ -25,7 +25,7 @@ import config_model
 
 from utils import data_utils
 
-MAX_SEQ_LENGTH = 64
+MAX_SEQ_LENGTH = 96
 
 
 def _modify_config_data(max_seq_length, num_train_data):
