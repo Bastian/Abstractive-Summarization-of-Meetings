@@ -238,19 +238,11 @@ def main():
                 break
 
         def calculate_scores():
-            # TODO Maybe we also want to use text tokens for eval, too.
-            #  I'm not sure, why Texar does not use text tokens in there transformer example for eval, too, but I guess
-            #  it mainly has performance reasons. I don't think that this matters very much in our case.
+            hyp_fn, ref_fn = 'tmp.%s.src' % mode, 'tmp.%s.tgt' % mode
+            write_token_id_arrays_to_text_file(hypotheses, os.path.join(model_dir, hyp_fn), tokenizer)
+            write_token_id_arrays_to_text_file(references, os.path.join(model_dir, ref_fn), tokenizer)
 
-            # Writes results to files to evaluate BLEU
-            # For 'eval' mode, the BLEU is based on token ids (rather than
-            # text tokens) and serves only as a surrogate metric to monitor
-            # the training process
-            fname = os.path.join(model_dir, 'tmp.eval' if mode is 'eval' else 'tmp.test')
-            hypotheses_str = tx.utils.str_join(hypotheses)
-            references_str = tx.utils.str_join(references)
-            hyp_fn, ref_fn = tx.utils.write_paired_text(
-                hypotheses_str, references_str, fname, mode='s')
+            hyp_fn, ref_fn = os.path.join(model_dir, hyp_fn), os.path.join(model_dir, ref_fn)
 
             files_rouge = FilesRouge(hyp_fn, ref_fn)
             rouge_scores = files_rouge.get_scores(avg=True)
