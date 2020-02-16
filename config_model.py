@@ -13,7 +13,7 @@ bert_encoder = {}
 # From https://github.com/asyml/texar/blob/413e07f859acbbee979f274b52942edd57b335c1/examples/transformer/config_model.py#L27-L45
 # with adjustments for BERT
 decoder = {
-    "dim": hidden_dim,
+    'dim': hidden_dim,
     'num_blocks': 6,
     'multihead_attention': {
         'num_heads': 8,
