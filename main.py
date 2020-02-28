@@ -252,7 +252,11 @@ def main():
             return rouge_scores, bleu_score
 
         if mode == 'eval':
-            rouge_scores, bleu_score = calculate_scores()
+            try:
+                rouge_scores, bleu_score = calculate_scores()
+            except ValueError:
+                print("Failed to calculate rouge scores!")
+                return
 
             print_rouge_scores(rouge_scores)
             print('epoch: %d, bleu_score %.4f' % (epoch, bleu_score))
