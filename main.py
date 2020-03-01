@@ -277,7 +277,6 @@ def main():
                 saver.save(sess, model_path)
 
         elif mode == 'test':
-            # TODO Calculate score on text tokens instead of token ids
             rouge_scores, bleu_score = calculate_scores()
 
             print_rouge_scores(rouge_scores)
