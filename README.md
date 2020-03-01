@@ -1,7 +1,5 @@
 # Abstractive Summarization of Meetings
 
-### IMPORTANT: This repository is work in progress!
-
 This project contains the source code for my bachelor's thesis "Abstractive Text Summarization of Meetings".
 
 ## Requirements
