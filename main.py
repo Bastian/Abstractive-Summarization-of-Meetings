@@ -24,6 +24,7 @@ from texar.tf.modules import TransformerDecoder, BERTEncoder
 from texar.tf.utils import transformer_utils
 from bleu_tool import bleu_wrapper
 from rouge import FilesRouge
+from time import gmtime, strftime
 
 import config_model
 import config_data
@@ -190,7 +191,7 @@ def main():
                 # Display every display_steps
                 display_steps = config_data.display_steps
                 if display_steps > 0 and step % display_steps == 0:
-                    print('step: %d, loss: %.4f' % (step, loss))
+                    print('[%s] step: %d, loss: %.4f' % (strftime("%Y-%m-%d %H:%M:%S", gmtime()), step, loss))
                     smry_writer.add_summary(fetches_['smry'], global_step=step)
 
                 # Eval every eval_steps
