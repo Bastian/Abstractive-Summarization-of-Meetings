@@ -327,7 +327,7 @@ def main():
         smry_writer = tf.summary.FileWriter(model_dir, graph=sess.graph)
 
         if FLAGS.run_mode == 'train_and_evaluate':
-            print('Begin running with train_and_evaluate mode')
+            print('Begin running with %s mode' % FLAGS.run_mode)
 
             if tf.train.latest_checkpoint(model_dir) is not None:
                 print('Restore latest checkpoint in %s' % model_dir)
@@ -338,7 +338,7 @@ def main():
                 step = _train_epoch(sess, epoch, step, smry_writer)
 
         elif FLAGS.run_mode == 'test':
-            print('Begin running with test mode')
+            print('Begin running with %s mode' % FLAGS.run_mode)
 
             print('Restore latest checkpoint in %s' % model_dir)
             saver.restore(sess, tf.train.latest_checkpoint(model_dir))
@@ -346,7 +346,7 @@ def main():
             _eval_epoch(sess, 0, mode='test')
 
         elif FLAGS.run_mode == 'predict':
-            print('Begin running with predict mode')
+            print('Begin running with %s mode' % FLAGS.run_mode)
 
             print('Restore latest checkpoint in %s' % model_dir)
             saver.restore(sess, tf.train.latest_checkpoint(model_dir))
